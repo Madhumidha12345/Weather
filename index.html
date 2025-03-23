@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 1000px;
+            width: 90%;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 1s ease-in-out;
+        }
+        h1 {
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        .search-bar {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .search-bar input {
+            padding: 15px;
+            border-radius: 15px;
+            border: none;
+            outline: none;
+            width: 60%;
+            font-size: 18px;
+            color: black;
+        }
+        .search-bar button {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+        .search-bar button:hover {
+            background: #ff4c4c;
+            transform: scale(1.05);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        #forecast-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 15px;
+        }
+        .forecast-item {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            width: 170px;
+            text-align: center;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .forecast-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
+        }
+        .forecast-item p {
+            margin: 8px 0;
+            font-size: 18px;
+        }
+        .forecast-item .temp {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .forecast-item img {
+            width: 60px;
+            height: 60px;
+        }
+        #weather-info p {
+            font-size: 22px;
+            margin: 8px 0;
+        }
+        #temperature {
+            font-size: 50px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Weather Dashboard</h1>
+        <div class="search-bar">
+            <input type="text" id="city" placeholder="Enter city name" />
+            <button onclick="fetchWeather()">
+                <img src="sun.png" alt="Sun Icon" style="width: 25px; height: 25px;"> Search
+            </button>
+        </div>
+        <p id="error" class="text-red-500 text-lg"></p>
+        <div id="weather-info" class="hidden">
+            <h2 id="location" class="text-3xl font-semibold"></h2>
+            <p id="description"></p>
+            <p id="temperature"></p>
+            <p id="wind"></p>
+            <p id="humidity"></p>
+            <p id="climate"></p>
+            <p id="rain-status"></p>
+            <p id="sun-status"></p>
+        </div>
+        <div id="forecast" class="hidden mt-6">
+            <h2 class="text-2xl font-semibold mb-3">7-Day Forecast</h2>
+            <div id="forecast-container"></div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchWeather() {
+            const city = document.getElementById('city').value;
+            const errorElement = document.getElementById('error');
+            const weatherInfo = document.getElementById('weather-info');
+            const forecastContainer = document.getElementById('forecast-container');
+            const forecastSection = document.getElementById('forecast');
+            const apiKey = "9055c2d52d1269e8b800b5c9b95a2a03";
+
+            if (!city) return;
+            errorElement.textContent = "";
+            weatherInfo.classList.add('hidden');
+            forecastSection.classList.add('hidden');
+            forecastContainer.innerHTML = "";
+
+            try {
+                const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`);
+                const data = await response.json();
+                
+                if (data.cod !== 200) {
+                    errorElement.textContent = data.message;
+                    return;
+                }
+                
+                document.getElementById('location').textContent = `${data.name}, ${data.sys.country}`;
+                document.getElementById('description').textContent = data.weather[0].description;
+                document.getElementById('temperature').textContent = `${data.main.temp}°C`;
+                document.getElementById('wind').textContent = `Wind: ${data.wind.speed} m/s`;
+                document.getElementById('humidity').textContent = `Humidity: ${data.main.humidity}%`;
+                document.getElementById('climate').textContent = `Climate: ${data.weather[0].main}`;
+                document.getElementById('rain-status').textContent = `Rain: ${data.rain ? data.rain['1h'] + ' mm' : 'No rain'}`;
+                document.getElementById('sun-status').textContent = `Sunrise: ${new Date(data.sys.sunrise * 1000).toLocaleTimeString()} | Sunset: ${new Date(data.sys.sunset * 1000).toLocaleTimeString()}`;
+                
+                weatherInfo.classList.remove('hidden');
+
+                const coords = data.coord;
+                const forecastResponse = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lon}&appid=${apiKey}&units=metric`);
+                const forecastData = await forecastResponse.json();
+                
+                const dailyForecasts = forecastData.list.filter((item, index) => index % 8 === 0);
+
+                dailyForecasts.forEach(day => {
+                    const date = new Date(day.dt * 1000).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+                    const temp = Math.round(day.main.temp);
+                    const desc = day.weather[0].description;
+                    const icon = day.weather[0].icon;
+
+                    const forecastItem = document.createElement('div');
+                    forecastItem.classList.add('forecast-item');
+                    forecastItem.innerHTML = `
+                        <p class="font-bold">${date}</p>
+                        <img src="https://openweathermap.org/img/wn/${icon}.png" alt="${desc}">
+                        <p class="temp">${temp}°C</p>
+                        <p>${desc}</p>
+                    `;
+                    forecastContainer.appendChild(forecastItem);
+                });
+
+                forecastSection.classList.remove('hidden');
+            } catch (error) {
+                errorElement.textContent = "Failed to fetch data. Try again.";
+            }
+        }
+    </script>
+</body>
+</html>
